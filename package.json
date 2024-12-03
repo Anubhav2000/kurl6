@@ -1,18 +1,22 @@
 {
-  "name": "kurl6",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "author": "Anubhav Marwaha",
+  "name": "curl-to-k6",
+  "version": "1.0.0",
+  "description": "Convert curl commands into k6 performance testing scripts.",
+  "main": "mod.ts",
+  "bin": {
+    "curl-to-k6": "./mod.ts"
+  },
+  "keywords": ["curl", "k6", "performance-testing", "deno"],
+  "license": "MIT",
   "dependencies": {
     "commander": "^12.1.0",
     "curl-parser": "^0.0.2",
     "curl-to-json": "^1.0.24",
     "shelljs": "^0.8.5"
-  }
+  },
+  "type": "module"
 }

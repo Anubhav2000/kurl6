@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 import { parse_curl } from "curl-parser"; // Import from curl-parser package
 
 async function runK6Test(commands: string[], options: Record<string, any>) {
