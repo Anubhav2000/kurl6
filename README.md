@@ -1,109 +1,98 @@
-curl-to-k6
+Here’s the updated README.md for kurl6 to reflect the correct project name:
 
-curl-to-k6 is a Deno-based tool that simplifies the creation of performance tests using k6. It converts curl commands into dynamically generated k6 scripts and optionally executes them or outputs the script for further use. This tool is ideal for developers who want to quickly generate load-testing scripts from curl commands.
+kurl6
+
+Convert curl Commands into k6 Performance Testing Scripts
+
+kurl6 is a CLI tool designed for developers and DevOps engineers to easily convert curl commands into k6 performance testing scripts. With this tool, you can seamlessly transform ad-hoc HTTP requests into full-fledged load testing scripts for k6.
 
 Features
 
-	•	Convert one or multiple curl commands into k6 scripts.
-	•	Automatically handle common k6 test parameters like vus, duration, and scenarios.
-	•	Support for token-based authentication.
-	•	Generate k6 scripts without executing (--generate-only).
-	•	Seamlessly run tests without creating temporary files.
-
-Requirements
-
-	•	Deno: Ensure you have Deno installed. Install Deno
-	•	k6: Install the k6 CLI. Install k6
+	•	📜 Convert curl commands into reusable k6 scripts.
+	•	🖹 Supports multiple requests for testing workflows.
+	•	⚡ Customize virtual users and durations with CLI options.
+	•	🛠️ Generate scripts only or run tests directly with k6.
+	•	🔐 Supports authentication headers with tokens.
 
 Installation
 
-Clone the repository or copy the mod.ts file into your project.
+Using npm:
 
-git clone https://github.com/your-repo/curl-to-k6.git
-cd curl-to-k6
+npm install -g kurl6
 
 Usage
 
-Command Syntax
+Basic Conversion:
 
-deno run --allow-run mod.ts '<curl-command>' [options]
+Convert a simple curl command to a k6 script:
 
-Options
+kurl6 "curl -X GET https://example.com" --generate-only
 
-Option	Description	Default
---vus	Number of virtual users	10
---duration	Duration of the test (e.g., 30s, 2m)	30s
---generate-only	Output the k6 script instead of running it	false
---token	Authorization token for requests	null
+Run Directly with k6:
 
-Examples
+Execute the generated k6 script with the specified options:
 
-1. Generate a k6 Script from a Single Curl Command
+kurl6 "curl -X POST https://example.com -d 'key=value'" --vus=10 --duration=30s
 
-deno run --allow-run mod.ts "curl -X GET https://example.com" --generate-only
+Command-Line Options:
 
-Output:
+	•	--vus (optional): Number of Virtual Users (default: 10).
+	•	--duration (optional): Test duration (default: 30s).
+	•	--iterations (optional): Number of iterations.
+	•	--generate-only: Output the generated script without running it.
+	•	--token (optional): Bearer token for authorization.
+
+Example:
+
+kurl6 "curl -X GET https://api.example.com/data" --vus=50 --duration=1m --token=your-token
+
+How It Works
+
+	1.	Parses the curl command(s) provided as input.
+	2.	Converts the HTTP method, URL, headers, and data into a structured k6 script.
+	3.	Dynamically generates k6 scenarios for load testing.
+	4.	Runs the script or outputs it based on the CLI options.
+
+Generated Script Example
+
+Given the command:
+
+kurl6 "curl -X GET https://example.com -H 'Authorization: Bearer token'"
+
+The tool generates:
 
 import http from "k6/http";
 import { sleep } from "k6";
 
 export const options = {
-    scenarios: {
-        scenario0: { executor: "constant-vus", vus: 10, duration: "30s", exec: "scenario0" },
-    },
+  vus: 10,
+  duration: "30s",
 };
 
-export function scenario0() {
-    const url = "https://example.com";
-    const params = { headers: {} };
-    const payload = null;
-    http.get(url, payload, params);
-}
-
 export default function () {
-    sleep(1);
+  const url = "https://example.com";
+  const params = { headers: { Authorization: "Bearer token" } };
+  http.get(url, params);
+  sleep(1);
 }
-
-2. Run a Test from a Single Curl Command
-
-deno run --allow-run mod.ts "curl -X GET https://example.com" --vus=50 --duration=2m
-
-This runs a k6 test with 50 virtual users for 2 minutes.
-
-3. Handle Token-Based Authentication
-
-deno run --allow-run mod.ts "curl -X GET https://example.com" --token="my-auth-token"
-
-Generates requests with the following header:
-
-{ Authorization: "Bearer my-auth-token" }
-
-4. Chain Multiple Curl Commands
-
-deno run --allow-run mod.ts \
-  "curl -X POST https://example.com/login" \
-  "curl -X GET https://example.com/data" \
-  "curl -X POST https://example.com/logout" \
-  --vus=10 --duration=1m
-
-Generates a script where each scenario runs the respective curl command.
-
-5. Pipe Results to a File
-
-deno run --allow-run mod.ts "curl -X GET https://example.com" --vus=10 --duration=1m --generate-only > test.js
-
-Notes
-
-	•	Use the --generate-only flag to create reusable scripts for more complex workflows.
-	•	The cmd argument in Deno’s Deno.run() expects k6 to be in your system’s PATH.
-	•	Ensure proper permissions by including --allow-run when running with Deno.
 
 Contributing
 
-We welcome contributions to enhance curl-to-k6. Feel free to submit issues or pull requests to the repository.
+Contributions are welcome! To get started:
+	1.	Fork the repository.
+	2.	Create a feature branch (git checkout -b feature-name).
+	3.	Commit your changes (git commit -m "Add feature").
+	4.	Push to the branch (git push origin feature-name).
+	5.	Open a pull request.
 
 License
 
-This project is licensed under the MIT License.
+This project is licensed under the MIT License. See the LICENSE file for details.
 
-With curl-to-k6, you can accelerate performance testing by effortlessly generating k6 scripts from curl commands. 🚀
+Feedback and Support
+
+If you encounter any issues or have suggestions, feel free to:
+	•	Open an issue on GitHub.
+	•	Reach out on social media.
+
+By sharing and using kurl6, you’re helping make performance testing more accessible for everyone! 🚀
