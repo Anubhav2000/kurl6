@@ -1,35 +1,20 @@
-import { parse_curl } from 'curl-parser'; // Import from curl-parser package
+import { parse_curl } from "curl-parser"; // Import from curl-parser package
 
-async function runK6Test(curlCommand: string, options: Record<string, any>) {
+async function runK6Test(commands: string[], options: Record<string, any>) {
     try {
-        // Validate and set default values for options
-        options.vus = options.vus ? parseInt(options.vus, 10) : 10; // Default VUs: 10
-        options.duration = options.duration || "30s"; // Default duration: 30s
-        options.iterations = options.iterations ? parseInt(options.iterations, 10) : undefined;
-
-        // Parse the curl command using curl-parser
-        const parsedCurl = parse_curl(curlCommand);
+        // Parse all curl commands
+        const parsedCommands = commands.map((cmd) => parse_curl(cmd));
 
         // Generate the k6 script dynamically
-        const k6Script = `
-            import http from 'k6/http';
-            import { sleep } from 'k6';
+        const k6Script = generateK6Script(parsedCommands, options);
 
-            export const options = {
-                vus: ${options.vus}, // Number of Virtual Users
-                duration: '${options.duration}', // Test Duration
-                ${options.iterations ? `iterations: ${options.iterations},` : ""}
-            };
+        console.log(options);
 
-            export default function () {
-                const url = '${parsedCurl.url}';
-                const params = ${JSON.stringify(parsedCurl.headers || {}, null, 2)};
-                const payload = ${parsedCurl.data ? JSON.stringify(parsedCurl.data, null, 2) : 'null'};
-
-                http.${parsedCurl.method.toLowerCase()}(url, payload, { headers: params });
-                sleep(1);
-            }
-        `;
+        // If --generate-only is passed, output the script and exit
+        if (options.generateOnly) {
+            console.log(k6Script);
+            return;
+        }
 
         console.log("Running k6 test...");
 
@@ -57,23 +42,71 @@ async function runK6Test(curlCommand: string, options: Record<string, any>) {
     }
 }
 
-// Command-line arguments
-const args = Deno.args;
+function generateK6Script(parsedCommands: any[], options: Record<string, any>): string {
+    const authHeader = options.token
+        ? `{ Authorization: \`Bearer ${options.token}\` }`
+        : "{}";
 
+    // Generate scenarios for multiple commands
+    const scenarios = parsedCommands.map((cmd, index) => `
+        export function scenario${index}() {
+            const url = '${cmd.url}';
+            const params = { headers: ${authHeader} };
+            const payload = ${cmd.data ? JSON.stringify(cmd.data, null, 2) : "null"};
+            http.${cmd.method.toLowerCase()}(url, payload, params);
+        }
+    `).join("\n");
+
+    const scenariosConfig = parsedCommands.map((_, index) => `
+        scenario${index}: { executor: "constant-vus", vus: ${options.vus}, duration: "${options.duration}", exec: "scenario${index}" },
+    `).join("\n");
+
+    return `
+        import http from "k6/http";
+        import { sleep } from "k6";
+
+        export const options = {
+            scenarios: {
+                ${scenariosConfig}
+            },
+        };
+
+        ${scenarios}
+
+        export default function () {
+            sleep(1);
+        }
+    `;
+}
+
+function parseArguments(args: string[]): { commands: string[]; options: Record<string, any> } {
+    const commands = [];
+    const options: Record<string, any> = {};
+
+    for (const arg of args) {
+        if (arg.startsWith("--")) {
+            const [key, value] = arg.split("=");
+            options[key.replace("--", "")] = value || true;
+        } else {
+            commands.push(arg);
+        }
+    }
+
+    return { commands, options };
+}
+
+// Entry point
+const args = Deno.args;
 if (args.length < 1) {
-    console.error(
-        'Usage: deno run --allow-run mod.ts "<curl-command>" --vus=<number> --duration=<time> --iterations=<number> --out=<output>'
-    );
+    console.error("Usage: deno run --allow-run mod.ts '<curl-command>' [--vus=number] [--duration=string] [--generate-only] [--token=string]");
     Deno.exit(1);
 }
 
-// Extract the curl command and options
-const curlCommand = args[0];
-const options = args.slice(1).reduce((acc, arg) => {
-    const [key, value] = arg.split("=");
-    acc[key.replace("--", "")] = value || true; // Convert "--key=value" to { key: value }
-    return acc;
-}, {});
+const { commands, options } = parseArguments(args);
 
-// Run the test
-await runK6Test(curlCommand, options);
+// Set defaults for options
+options.vus = options.vus ? parseInt(options.vus, 10) : 10;
+options.duration = options.duration || "30s";
+
+// Run the test or generate the script
+await runK6Test(commands, options);
