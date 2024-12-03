@@ -1,5 +1,6 @@
 {
   "scripts": {
+    "build": "tsc mod.ts --outDir dist",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Anubhav Marwaha",
@@ -9,10 +10,6 @@
   "main": "mod.mjs",
   "bin": {
     "curl-to-k6": "./dist/mod.js"
-  },
-  "scripts": {
-    "build": "tsc mod.ts --outDir dist",
-    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
     "curl",
@@ -25,7 +22,7 @@
     "commander": "^12.1.0",
     "curl-parser": "^0.0.2",
     "curl-to-json": "^1.0.24",
-    "kurl6": "^1.0.1",
+    "kurl6": "^1.0.2",
     "shelljs": "^0.8.5"
   },
   "type": "module"
