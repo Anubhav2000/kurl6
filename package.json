@@ -3,7 +3,7 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Anubhav Marwaha",
-  "name": "curl-to-k6",
+  "name": "Kurl6",
   "version": "1.0.0",
   "description": "Convert curl commands into k6 performance testing scripts.",
   "main": "mod.ts",
