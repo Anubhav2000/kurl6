@@ -1,7 +1,9 @@
 #!/usr/bin/env node
-import { parse_curl } from "curl-parser"; // Import from curl-parser package
 
-async function runK6Test(commands: string[], options: Record<string, any>) {
+import { parse_curl } from "curl-parser"; // Import from curl-parser package
+import { spawn } from "child_process";
+
+async function runK6Test(commands, options) {
     try {
         // Parse all curl commands
         const parsedCommands = commands.map((cmd) => parse_curl(cmd));
@@ -20,30 +22,27 @@ async function runK6Test(commands: string[], options: Record<string, any>) {
         console.log("Running k6 test...");
 
         // Spawn the k6 process with the script passed via stdin
-        const process = Deno.run({
-            cmd: ["k6", "run", "-"],
-            stdin: "piped",
-            stdout: "inherit",
-            stderr: "inherit",
+        const k6Process = spawn("k6", ["run", "-"], {
+            stdio: ["pipe", "inherit", "inherit"], // Pass script content to stdin
         });
 
-        // Write the script to the stdin pipe
-        const encoder = new TextEncoder();
-        await process.stdin.write(encoder.encode(k6Script));
-        process.stdin.close();
+        // Write the script content to the k6 process
+        k6Process.stdin.write(k6Script);
+        k6Process.stdin.end();
 
-        const status = await process.status();
-        if (!status.success) {
-            console.error("k6 test failed.");
-        }
-
-        process.close();
+        k6Process.on("close", (code) => {
+            if (code !== 0) {
+                console.error("k6 test failed.");
+            } else {
+                console.log("k6 test completed successfully.");
+            }
+        });
     } catch (error) {
         console.error("Error:", error.message);
     }
 }
 
-function generateK6Script(parsedCommands: any[], options: Record<string, any>): string {
+function generateK6Script(parsedCommands, options) {
     const authHeader = options.token
         ? `{ Authorization: \`Bearer ${options.token}\` }`
         : "{}";
@@ -80,9 +79,9 @@ function generateK6Script(parsedCommands: any[], options: Record<string, any>): 
     `;
 }
 
-function parseArguments(args: string[]): { commands: string[]; options: Record<string, any> } {
+function parseArguments(args) {
     const commands = [];
-    const options: Record<string, any> = {};
+    const options = {};
 
     for (const arg of args) {
         if (arg.startsWith("--")) {
@@ -97,10 +96,10 @@ function parseArguments(args: string[]): { commands: string[]; options: Record<s
 }
 
 // Entry point
-const args = Deno.args;
+const args = process.argv.slice(2); // Remove the first two elements (node and script path)
 if (args.length < 1) {
-    console.error("Usage: deno run --allow-run mod.ts '<curl-command>' [--vus=number] [--duration=string] [--generate-only] [--token=string]");
-    Deno.exit(1);
+    console.error("Usage: curl-to-k6 '<curl-command>' [--vus=number] [--duration=string] [--generate-only] [--token=string]");
+    process.exit(1);
 }
 
 const { commands, options } = parseArguments(args);
@@ -110,4 +109,4 @@ options.vus = options.vus ? parseInt(options.vus, 10) : 10;
 options.duration = options.duration || "30s";
 
 // Run the test or generate the script
-await runK6Test(commands, options);
+runK6Test(commands, options);

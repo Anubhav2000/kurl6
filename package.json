@@ -6,16 +6,26 @@
   "name": "kurl6",
   "version": "1.0.1",
   "description": "Convert curl commands into k6 performance testing scripts.",
-  "main": "mod.ts",
+  "main": "mod.mjs",
   "bin": {
-    "curl-to-k6": "./mod.mjs"
+    "curl-to-k6": "./dist/mod.js"
   },
-  "keywords": ["curl", "k6", "performance-testing", "deno"],
+  "scripts": {
+    "build": "tsc mod.ts --outDir dist",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "curl",
+    "k6",
+    "performance-testing",
+    "deno"
+  ],
   "license": "MIT",
   "dependencies": {
     "commander": "^12.1.0",
     "curl-parser": "^0.0.2",
     "curl-to-json": "^1.0.24",
+    "kurl6": "^1.0.1",
     "shelljs": "^0.8.5"
   },
   "type": "module"

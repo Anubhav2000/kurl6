@@ -1,0 +1,9 @@
+{
+    "compilerOptions": {
+      "module": "ESNext",
+      "target": "ES6",
+      "outDir": "dist",
+      "strict": true
+    },
+    "include": ["mod.ts"]
+  }
