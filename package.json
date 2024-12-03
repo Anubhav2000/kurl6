@@ -4,7 +4,7 @@
   },
   "author": "Anubhav Marwaha",
   "name": "kurl6",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Convert curl commands into k6 performance testing scripts.",
   "main": "mod.ts",
   "bin": {
