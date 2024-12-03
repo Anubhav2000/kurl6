@@ -8,7 +8,7 @@
   "description": "Convert curl commands into k6 performance testing scripts.",
   "main": "mod.ts",
   "bin": {
-    "curl-to-k6": "./mod.ts"
+    "curl-to-k6": "./mod.mjs"
   },
   "keywords": ["curl", "k6", "performance-testing", "deno"],
   "license": "MIT",
